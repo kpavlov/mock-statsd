@@ -23,11 +23,12 @@ version = run {
     }
 }
 
-description = "Mock StatsD Server"
-
-val projectName = ext.properties["name"]
+val projectName = ext.properties["name"].toString()
+val projectDescription = ext.properties["projectDescription"].toString()
 val projectRepository = ext.properties["repository"].toString()
-val inceptionYear = ext.properties["inceptionYear"].toString()
+val projectInceptionYear = ext.properties["inceptionYear"].toString()
+
+description = projectDescription
 
 repositories {
     mavenCentral()
@@ -103,6 +104,8 @@ publishing {
     // https://docs.gradle.org/current/userguide/publishing_setup.html
     publications.create<MavenPublication>("maven") {
         pom {
+            name.value(projectName)
+            description.value(projectDescription)
             url.set("https://$projectRepository")
             licenses {
                 license {
@@ -125,6 +128,7 @@ publishing {
                 url.set(projectRepository)
                 tag.set("HEAD")
             }
+            inceptionYear.value(projectInceptionYear)
         }
         from(components["java"])
     }
