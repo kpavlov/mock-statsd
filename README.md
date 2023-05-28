@@ -1,6 +1,6 @@
 # Mock StatsD
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.kpavlov.mocks.statsd/mock-statsd/badge.svg)](https://search.maven.org/#search%7Cgav%7C1%7Cg%3A"com.github.kpavlov.mocks.statsd"%20AND%20a%3A"mock-statsd")
+[![Maven Central](https://img.shields.io/maven-central/v/com.github.kpavlov.mocks.statsd/mock-statsd)](https://search.maven.org/#search%7Cgav%7C1%7Cg%3A"com.github.kpavlov.mocks.statsd"%20AND%20a%3A"mock-statsd")
 
 ## What is StatsD?
 
