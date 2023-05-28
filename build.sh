@@ -18,4 +18,4 @@ printf '\nBuilding 📦\n'
 
 printf '\nTesting 🧪\n'
 
-./gradlew $GRADLE_ARGS check --stacktrace
+./gradlew "$GRADLE_ARGS" check --stacktrace
