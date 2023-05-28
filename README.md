@@ -1,6 +1,7 @@
 # Mock StatsD
 
 [![Maven Central](https://img.shields.io/maven-central/v/com.github.kpavlov.mocks.statsd/mock-statsd)](https://search.maven.org/#search%7Cgav%7C1%7Cg%3A"com.github.kpavlov.mocks.statsd"%20AND%20a%3A"mock-statsd")
+[![Java CI with Gradle](https://github.com/kpavlov/mock-statsd/actions/workflows/gradle.yml/badge.svg)](https://github.com/kpavlov/mock-statsd/actions/workflows/gradle.yml)
 
 ## What is StatsD?
 
