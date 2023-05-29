@@ -56,7 +56,7 @@ internal interface Metric {
             return value.elementAtOrElse(0) { 0.0 }
         }
 
-        fun values(): Array<Double> = value.toTypedArray()
+        fun values(): DoubleArray = value.toDoubleArray()
     }
 }
 
