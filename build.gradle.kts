@@ -38,8 +38,10 @@ dependencies {
     val awaitilityVersion = "4.2.0"
     val assertjVersion = "3.24.2"
     val slf4jVersion = "2.0.7"
+    val junitVersion = "5.9.3"
 
     api("org.slf4j:slf4j-api:$slf4jVersion")
+    api("org.junit.jupiter:junit-jupiter-api:$junitVersion")
     runtimeOnly("org.slf4j:slf4j-simple:$slf4jVersion")
     testImplementation("org.assertj:assertj-core:$assertjVersion")
     testImplementation("org.awaitility:awaitility-kotlin:$awaitilityVersion")
