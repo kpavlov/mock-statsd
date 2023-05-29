@@ -41,7 +41,7 @@ internal abstract class BaseStatsDServerTest {
         mockStatsD.verifyCall(expectedMessage)
         mockStatsD.verifyNoMoreCalls(expectedMessage)
     }
-    
+
     @Test
     fun `Should reset`() {
         val name = "counterMetric"

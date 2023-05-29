@@ -66,6 +66,14 @@ This is a simple library for creating a mock StatsD server in Kotlin. It can be 
 
 5. Cleaning Up
 
+    ```kotlin
+    mockStatsD.reset()
+    ```
+
+    Cleans up collected metrics and recorded calls.
+
+6. Stopping server
+
     When you're done with the server, stop it with the `stop` method:
 
     ```kotlin
