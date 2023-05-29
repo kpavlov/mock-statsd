@@ -52,8 +52,13 @@ public open class StatsDServer(port: Int = DEFAULT_PORT) {
                 socket.receive(packet)
                 val message = String(packet.data, 0, packet.length)
                 logger.debug("Received: {}", message)
-                onMessage(message)
-                handleMessage(message)
+                @Suppress("TooGenericExceptionCaught")
+                try {
+                    onMessage(message)
+                    handleMessage(message)
+                } catch (e: Exception) {
+                    logger.error("Can't handle message: $message", e)
+                }
             }
         }
     }

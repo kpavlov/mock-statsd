@@ -140,7 +140,10 @@ client.time(name, value)
 
 ```kotlin
 val name = "counterMetric"
-client.incrementCounter(name)
+client.incrementCounter(name) // increment by 1
+client.incrementCounter(name, 3) // increment by 3
+client.incrementCounter(name, -2) // decrement by 2
+client.decrementCounter(name) // decrement by 1
 ```
 
 ### Gauge

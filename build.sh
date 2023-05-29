@@ -9,7 +9,7 @@ rm -rf build
 printf '\nBuilding 📦\n'
 
 #./gradlew build --scan
-./gradlew $GRADLE_ARGS \
+./gradlew "$GRADLE_ARGS" \
     clean \
     ktlintTestSourceSetFormat \
     ktlintMainSourceSetFormat \

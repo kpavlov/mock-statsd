@@ -46,17 +46,16 @@ internal abstract class BaseStatsDServerTest {
     fun `Server should capture Counter`() {
         val name = "counterMetric"
         client.incrementCounter(name)
-        client.incrementCounter(name)
-        client.incrementCounter(name)
+        client.incrementCounter(name, 5)
+        client.incrementCounter(name, -2)
+        client.decrementCounter(name)
         await untilAsserted {
             assertThat(statsd.metric(name)).isEqualTo(3.0)
         }
-        val expectedMessage = "$name:1|c"
-        assertThat(statsd.calls().count { it == expectedMessage }).isEqualTo(3)
-        statsd.verifyCall(expectedMessage)
-        statsd.verifyCall(expectedMessage)
-        statsd.verifyCall(expectedMessage)
-        statsd.verifyNoMoreCalls(expectedMessage)
+        statsd.verifyCall("$name:1|c")
+        statsd.verifyCall("$name:5|c")
+        statsd.verifyCall("$name:-2|c")
+        statsd.verifyCall("$name:-1|c")
     }
 
     @Test
