@@ -110,7 +110,7 @@ internal abstract class BaseStatsDServerTest {
         }
 
         assertThat(statsd.metricContents(name))
-            .containsExactlyElementsOf(values.toSet())
+            .containsExactlyInAnyOrder(values.toSet().toTypedArray())
     }
 
     /**

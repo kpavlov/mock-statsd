@@ -152,7 +152,7 @@ public open class StatsDServer(port: Int = DEFAULT_PORT) {
     public fun metricContents(
         metricName: String,
         tags: Map<String, String>? = null
-    ): Array<Double>? {
+    ): DoubleArray? {
         val metric = findMetric(metricName, tags)
         return if (metric is Metric.SetMetric) {
             metric.values()
