@@ -1,21 +1,12 @@
 package me.kpavlov.mocks.statsd.server
 
-import org.slf4j.LoggerFactory
-import java.net.DatagramPacket
-import java.net.DatagramSocket
-import java.util.*
-import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
-import java.util.concurrent.Executors
-
-
-private const val BUFFER_SIZE = 1024
 
 /**
  * A StatsD server that listens for incoming UDP packets containing metrics and stores them for analysis.
  * The server runs on a specified port or the default port (8125) if not provided.
  */
-public class MockStatsDServer(port: Int = DEFAULT_PORT) : StatsDServer(port=port) {
+public class MockStatsDServer(port: Int = DEFAULT_PORT) : StatsDServer(port = port) {
     private val calls = ConcurrentLinkedQueue<String>()
 
     protected override fun onMessage(message: String) {
@@ -28,6 +19,14 @@ public class MockStatsDServer(port: Int = DEFAULT_PORT) : StatsDServer(port=port
      * @return the list of calls
      */
     public fun calls(): List<String> = calls.toList()
+
+    /**
+     * Reset collected metrics and recorded calls.
+     */
+    override fun reset() {
+        calls.clear()
+        super.reset()
+    }
 
     /**
      * Verifies that the specified message was received by the server.

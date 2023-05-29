@@ -3,9 +3,7 @@ package me.kpavlov.mocks.statsd.server
 import org.slf4j.LoggerFactory
 import java.net.DatagramPacket
 import java.net.DatagramSocket
-import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.Executors
 
 public const val RANDOM_PORT: Int = 0
@@ -31,6 +29,13 @@ public open class StatsDServer(port: Int = DEFAULT_PORT) {
      * @return the port number
      */
     public fun port(): Int = socket.localPort
+
+    /**
+     * Reset collected metrics
+     */
+    public open fun reset() {
+        metrics.clear()
+    }
 
     /**
      * Starts the StatsD server, listening for incoming UDP packets and processing them.

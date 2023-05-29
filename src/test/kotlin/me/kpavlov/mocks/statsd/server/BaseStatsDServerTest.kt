@@ -41,6 +41,20 @@ internal abstract class BaseStatsDServerTest {
         mockStatsD.verifyCall(expectedMessage)
         mockStatsD.verifyNoMoreCalls(expectedMessage)
     }
+    
+    @Test
+    fun `Should reset`() {
+        val name = "counterMetric"
+        client.incrementCounter(name)
+        val expectedMessage = "$name:1|c"
+        await untilAsserted {
+            assertThat(mockStatsD.calls()).contains(expectedMessage)
+        }
+        // when
+        mockStatsD.reset()
+        assertThat(mockStatsD.calls()).isEmpty()
+        mockStatsD.verifyNoMoreCalls(expectedMessage)
+    }
 
     @Test
     fun `Server should capture Gauge`() {
