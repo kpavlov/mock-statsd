@@ -11,9 +11,23 @@
 
 [StatsD](https://github.com/statsd/statsd) is a simple daemon for easy stats aggregation which is commonly used for monitoring applications. The basic idea is to send different types of metrics (like counters, timers, gauges) from your application to StatsD, which then periodically aggregates the metrics and pushes them to Graphite (or some other defined backend).
 
-# StatsD Mock Server in Kotlin
+# Mock StatsD Server library in Kotlin
 
-This is a simple library for creating a mock StatsD server in Kotlin. It can be used for unit testing applications that send metrics to a StatsD server.
+The **Mock StatsD** library offers several benefits for Kotlin and Java developers, especially those working on applications that send metrics to a StatsD server:
+
+1. **Simplified Testing**: By providing a mock StatsD server, this tool makes it easier to write unit tests for your application's metrics-related functionality. Instead of having to manage a real StatsD server for testing purposes, you can simply start and stop the mock server as needed.
+
+2. **Detailed Verification**: Mock StatsD allows you to verify the exact metrics sent by your application, including the type, name, and value of each metric. This makes it possible to catch subtle bugs in your metrics code.
+
+3. **Support for All StatsD Metric Types**: Whether your application uses counters, timers, gauges, or histograms, you can test them all with Mock StatsD.
+
+4. **Automatic Port Management**: If you don't specify a port number when creating the mock server, it automatically selects an available port. This is especially useful in environments where many tests are running concurrently and may be using network resources.
+
+5. **Easy Integration with JUnit 5**: The library provides a JUnit 5 extension, which automatically manages the lifecycle of the mock server. This means the server will start before your tests run and stop after they complete, minimizing the boilerplate code in your tests.
+
+6. **Built with Kotlin**: As a Kotlin library, Mock StatsD integrates seamlessly with your Kotlin codebase. It takes advantage of Kotlin features like extension functions, and its API is designed to be idiomatic and intuitive for Kotlin developers.
+
+By simplifying the process of testing your application's metrics code and providing detailed, easy-to-use verification methods, Mock StatsD helps ensure the quality and reliability of your software.
 
 ## Getting Started
 
