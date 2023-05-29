@@ -46,7 +46,7 @@ internal interface Metric {
     }
 
     data class SetMetric(
-        private val value: ConcurrentSkipListSet<Double> = ConcurrentSkipListSet(),
+        private val value: ConcurrentSkipListSet<Double> = ConcurrentSkipListSet()
     ) : Metric {
         override fun merge(other: Number, sampleRate: Double?) {
             value.add(other.toDouble())

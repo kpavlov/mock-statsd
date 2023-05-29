@@ -14,7 +14,7 @@ import java.net.InetAddress
  */
 public class StatsDClient(
     private val host: String = "localhost",
-    private val port: Int = 8125,
+    private val port: Int = 8125
 ) {
     private val socket: DatagramSocket = DatagramSocket()
 
