@@ -34,7 +34,8 @@ internal abstract class BaseStatsDServerTest {
         val value = 31L
         client.time(name, value, 0.1)
         await untilAsserted {
-            assertThat(statsd.metric(name)).isEqualTo(value.toDouble())
+            assertThat(statsd.metric(name))
+                .isEqualTo(value.toDouble())
         }
         val expectedMessage = "$name:$value|ms|@0.1"
         assertThat(statsd.calls()).containsOnlyOnce(expectedMessage)
@@ -87,7 +88,8 @@ internal abstract class BaseStatsDServerTest {
         val value = 42.0
         client.gauge(name, value)
         await untilAsserted {
-            assertThat(statsd.metric(name)).isEqualTo(value)
+            assertThat(statsd.metric(name))
+                .isEqualTo(value)
         }
         val expectedMessage = "$name:$value|g"
         assertThat(statsd.calls()).containsOnlyOnce(expectedMessage)

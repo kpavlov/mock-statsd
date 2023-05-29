@@ -16,9 +16,9 @@ private const val BUFFER_SIZE = 8932
  * The server runs on a specified port or the default port (8125) if not provided.
  */
 public open class StatsDServer(port: Int = DEFAULT_PORT) {
-    private val logger = LoggerFactory.getLogger(StatsDServer::class.java)
+    private val logger = LoggerFactory.getLogger(javaClass)
     private val socket = DatagramSocket(port)
-    private val metrics = ConcurrentHashMap<String, Metric>()
+    private val metrics = ConcurrentHashMap<MetricId, Metric>()
     private val executorService = Executors.newSingleThreadExecutor()
 
     private var shouldRun = false
@@ -74,19 +74,40 @@ public open class StatsDServer(port: Int = DEFAULT_PORT) {
      * ```
      */
     private fun handleMetric(message: String) {
-        val metricData = message.split(":")
+        val metricData = message.split(":", limit = 2)
         val metricName = metricData[0]
         val valueParts = metricData[1].split("|")
         val metricValue = valueParts[0].toDouble()
         val metricType = valueParts[1]
-        val sampleRate = if (valueParts.size == 3) {
-            valueParts[2].removePrefix("@").toDouble()
-        } else {
-            null
+
+        var sampleRate: Double? = null
+        var tags: Map<String, String> = emptyMap()
+
+        for (i in 2 until valueParts.size) {
+            val prefix = valueParts[i].first()
+            when (prefix) {
+                '@' -> {
+                    sampleRate = valueParts[i].substring(1).toDouble()
+                }
+
+                '#' -> {
+                    tags = mutableMapOf()
+                    valueParts[i].substring(1)
+                        .split(",")
+                        .forEach {
+                            it.split(':')
+                                .zipWithNext { k, v -> tags[k] = v }
+                        }
+                }
+            }
         }
-        val metric = metrics.computeIfAbsent(metricName) { createMetric(metricType) }
+
+        val metricId = MetricId(metricName, tags)
+        logger.trace("Tags: {}, ID={}", tags, metricId)
+
+        val metric = metrics.computeIfAbsent(metricId) { createMetric(metricType) }
         metric.merge(metricValue, sampleRate)
-        logger.debug("Updated value: {} = {}", metricName, metrics[metricName])
+        logger.debug("Updated value: {} = {}", metricId, metrics[metricId])
     }
 
     protected open fun onMessage(message: String) {
@@ -101,26 +122,38 @@ public open class StatsDServer(port: Int = DEFAULT_PORT) {
         shouldRun = false
     }
 
+    private fun findMetric(metricName: String, tags: Map<String, String>? = null): Metric? {
+        return metrics.entries
+            .firstOrNull { it.key.matches(metricName, tags) }?.value
+    }
+
     /**
      * Retrieves the metric value for the specified metric name.
      *
      * @param metricName the name of the metric
+     * @param tags optional tags for the metric
      * @return the metric value associated with the metric name,
      * or `null` if not found
      */
-    public fun metric(metricName: String): Double? {
-        return metrics[metricName]?.value()?.toDouble()
+    @JvmOverloads
+    public fun metric(metricName: String, tags: Map<String, String>? = null): Double? {
+        return findMetric(metricName, tags)?.value()?.toDouble()
     }
 
     /**
      * Retrieves the Set metric values for the specified metric name.
      *
      * @param metricName the name of the metric
+     * @param tags optional tags for the metric
      * @return the metric value associated with the metric name,
      * or `null` if not found
      */
-    public fun metricContents(metricName: String): Array<Double>? {
-        val metric = metrics[metricName]
+    @JvmOverloads
+    public fun metricContents(
+        metricName: String,
+        tags: Map<String, String>? = null
+    ): Array<Double>? {
+        val metric = findMetric(metricName, tags)
         return if (metric is Metric.SetMetric) {
             metric.values()
         } else {
