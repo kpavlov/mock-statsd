@@ -150,6 +150,18 @@ val value = 42.0
 client.histogram(name, value)
 ```
 
+### Set
+
+```kotlin
+val name = "histogramMetric"
+client.set(name, 42.0)
+client.set(name, 128.0)
+client.set(name, 42.0)
+
+println(mockStatsD.metricContents(name)?.asList()?.sorted()) // [42.0, 128.0]
+```
+
+
 ### Multi-Metric Packets
 
 MockStatsD supports receiving  [multiple metrics in a single packet](https://github.com/statsd/statsd/blob/master/docs/metric_types.md#multi-metric-packets) by separating them with a newline characters (`\n`).
