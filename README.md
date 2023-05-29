@@ -159,6 +159,36 @@ val value = 42.0
 client.histogram(name, value)
 ```
 
+### Multi-Metric Packets
+
+MockStatsD supports receiving  [multiple metrics in a single packet](https://github.com/statsd/statsd/blob/master/docs/metric_types.md#multi-metric-packets) by separating them with a newline characters (`\n`).
+
+    batchGauge:333.0|g\nbatchCounter:42.0|c
+
+Each message could therefore represent a batch of metrics sent from the client in a single UDP packet. This is useful for reducing network load when sending multiple metrics, as it can all be done in one network operation.
+
+The batch support is achieved by first splitting the batched message into individual metrics and then handling each metric separately, e.g.:
+
+```kotlin
+    @Test
+    fun `Server should handle multi-metric packets`() {
+        val gaugeName = "batchGauge"
+        val counterName = "batchCounter"
+
+        // Set initial value
+        val gaugeValue = 333.0
+        val counterValue = 42.0
+        client.send("$gaugeName:$gaugeValue|g\n$counterName:$counterValue|c")
+        await untilAsserted {
+            assertThat(statsd.metric(gaugeName)).isEqualTo(gaugeValue)
+        }
+        await untilAsserted {
+            assertThat(statsd.metric(counterName)).isEqualTo(counterValue)
+        }
+    }
+
+```
+
 ## Verifying Metrics
 
 After sending metrics, you can verify that the server captured them correctly. Use the `metric` method to retrieve a metric value, and `verifyCall` to verify that a specific call was made. For example:

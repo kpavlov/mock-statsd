@@ -42,7 +42,10 @@ public class StatsDClient(
         send("$metric:$value|s")
     }
 
-    private fun send(data: String) {
+    /**
+     * Send raw data (string) to server
+     */
+    public fun send(data: String) {
         println("Sending data: \"$data\"")
         val buffer = data.toByteArray()
         val packet = DatagramPacket(buffer, buffer.size, InetAddress.getByName(host), port)
