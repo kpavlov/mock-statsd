@@ -15,7 +15,7 @@ internal abstract class BaseStatsDServerTest {
     protected lateinit var client: StatsDClient
 
     @Test
-    fun `Server should capture Time`() {
+    fun `Server should capture Timer`() {
         val name = "timeMetric"
         val value = 31L
         client.time(name, value)
@@ -23,6 +23,20 @@ internal abstract class BaseStatsDServerTest {
             assertThat(statsd.metric(name)).isEqualTo(value.toDouble())
         }
         val expectedMessage = "$name:$value|ms"
+        assertThat(statsd.calls()).containsOnlyOnce(expectedMessage)
+        statsd.verifyCall(expectedMessage)
+        statsd.verifyNoMoreCalls(expectedMessage)
+    }
+
+    @Test
+    fun `Server should capture Timer with sample rate`() {
+        val name = "sampleTimeMetric"
+        val value = 31L
+        client.time(name, value, 0.1)
+        await untilAsserted {
+            assertThat(statsd.metric(name)).isEqualTo(value.toDouble())
+        }
+        val expectedMessage = "$name:$value|ms|@0.1"
         assertThat(statsd.calls()).containsOnlyOnce(expectedMessage)
         statsd.verifyCall(expectedMessage)
         statsd.verifyNoMoreCalls(expectedMessage)

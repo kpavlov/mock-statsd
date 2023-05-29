@@ -7,7 +7,6 @@ import org.junit.jupiter.api.TestInstance
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class StatsDServerTest : BaseStatsDServerTest() {
-
     @BeforeAll
     fun beforeAll() {
         statsd = MockStatsDServer(RANDOM_PORT)

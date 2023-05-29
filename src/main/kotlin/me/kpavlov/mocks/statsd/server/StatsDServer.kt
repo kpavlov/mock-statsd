@@ -62,10 +62,23 @@ public open class StatsDServer(port: Int = DEFAULT_PORT) {
         message.split("\n").forEach(this::handleMetric)
     }
 
+    /**
+     * Split metric:
+     * ```
+     * <metric name>:<value>|c[|@<sample rate>]
+     * ```
+     */
     private fun handleMetric(message: String) {
         val metricData = message.split(":")
         val metricName = metricData[0]
-        val metricValue = metricData[1].split("|")[0].toDouble()
+        val valueParts = metricData[1].split("|")
+        val metricValue = valueParts[0].toDouble()
+        val metricType = valueParts[1]
+        var sampleRate = if (valueParts.size == 3) {
+            valueParts[2].removePrefix("@").toDouble()
+        } else {
+            null
+        }
         metrics.merge(metricName, metricValue, Double::plus)
         logger.debug("Updated value: {} = {}", metricName, metrics[metricName])
     }
