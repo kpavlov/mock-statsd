@@ -3,10 +3,13 @@
 [![Maven Central](https://img.shields.io/maven-central/v/com.github.kpavlov.mocks.statsd/mock-statsd)](https://search.maven.org/#search%7Cgav%7C1%7Cg%3A"com.github.kpavlov.mocks.statsd"%20AND%20a%3A"mock-statsd")
 [![Java CI with Gradle](https://github.com/kpavlov/mock-statsd/actions/workflows/gradle.yml/badge.svg)](https://github.com/kpavlov/mock-statsd/actions/workflows/gradle.yml)
 [![CodeQL](https://github.com/kpavlov/mock-statsd/actions/workflows/codeql.yml/badge.svg)](https://github.com/kpavlov/mock-statsd/actions/workflows/codeql.yml)
+[![GitHub license](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat)](https://www.apache.org/licenses/LICENSE-2.0)
+[![Kotlin](https://img.shields.io/badge/kotlin-1.8.21-blue.svg?logo=kotlin)](http://kotlinlang.org)
+
 
 ## What is StatsD?
 
-StatsD is a simple daemon for easy stats aggregation which is commonly used for monitoring applications. The basic idea is to send different types of metrics (like counters, timers, gauges) from your application to StatsD, which then periodically aggregates the metrics and pushes them to Graphite (or some other defined backend).
+[StatsD](https://github.com/statsd/statsd) is a simple daemon for easy stats aggregation which is commonly used for monitoring applications. The basic idea is to send different types of metrics (like counters, timers, gauges) from your application to StatsD, which then periodically aggregates the metrics and pushes them to Graphite (or some other defined backend).
 
 # StatsD Mock Server in Kotlin
 
