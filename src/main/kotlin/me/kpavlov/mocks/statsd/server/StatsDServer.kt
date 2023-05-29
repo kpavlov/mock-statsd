@@ -18,7 +18,7 @@ private const val BUFFER_SIZE = 8932
 public open class StatsDServer(port: Int = DEFAULT_PORT) {
     private val logger = LoggerFactory.getLogger(StatsDServer::class.java)
     private val socket = DatagramSocket(port)
-    private val metrics = ConcurrentHashMap<String, Double>()
+    private val metrics = ConcurrentHashMap<String, Metric>()
     private val executorService = Executors.newSingleThreadExecutor()
 
     private var shouldRun = false
@@ -79,12 +79,13 @@ public open class StatsDServer(port: Int = DEFAULT_PORT) {
         val valueParts = metricData[1].split("|")
         val metricValue = valueParts[0].toDouble()
         val metricType = valueParts[1]
-        var sampleRate = if (valueParts.size == 3) {
+        val sampleRate = if (valueParts.size == 3) {
             valueParts[2].removePrefix("@").toDouble()
         } else {
             null
         }
-        metrics.merge(metricName, metricValue, Double::plus)
+        val metric = metrics.computeIfAbsent(metricName) { createMetric(metricType) }
+        metric.merge(metricValue, sampleRate)
         logger.debug("Updated value: {} = {}", metricName, metrics[metricName])
     }
 
@@ -104,10 +105,27 @@ public open class StatsDServer(port: Int = DEFAULT_PORT) {
      * Retrieves the metric value for the specified metric name.
      *
      * @param metricName the name of the metric
-     * @return the metric value associated with the metric name, or `null` if not found
+     * @return the metric value associated with the metric name,
+     * or `null` if not found
      */
     public fun metric(metricName: String): Double? {
-        return metrics[metricName]
+        return metrics[metricName]?.value()?.toDouble()
+    }
+
+    /**
+     * Retrieves the Set metric values for the specified metric name.
+     *
+     * @param metricName the name of the metric
+     * @return the metric value associated with the metric name,
+     * or `null` if not found
+     */
+    public fun metricContents(metricName: String): Array<Double>? {
+        val metric = metrics[metricName]
+        return if (metric is Metric.SetMetric) {
+            metric.values()
+        } else {
+            null
+        }
     }
 }
 

@@ -14,7 +14,7 @@ import java.net.InetAddress
  */
 public class StatsDClient(
     private val host: String = "localhost",
-    private val port: Int = 8125
+    private val port: Int = 8125,
 ) {
     private val socket: DatagramSocket = DatagramSocket()
 
@@ -53,7 +53,7 @@ public class StatsDClient(
         send("$metric:$value|m")
     }
 
-    public fun set(metric: String, value: Long) {
+    public fun set(metric: String, value: Double) {
         send("$metric:$value|s")
     }
 

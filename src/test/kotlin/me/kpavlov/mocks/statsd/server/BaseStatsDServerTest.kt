@@ -46,8 +46,17 @@ internal abstract class BaseStatsDServerTest {
     fun `Server should capture Counter`() {
         val name = "counterMetric"
         client.incrementCounter(name)
+        await untilAsserted {
+            assertThat(statsd.metric(name)).isEqualTo(1.0)
+        }
         client.incrementCounter(name, 5)
+        await untilAsserted {
+            assertThat(statsd.metric(name)).isEqualTo(6.0)
+        }
         client.incrementCounter(name, -2)
+        await untilAsserted {
+            assertThat(statsd.metric(name)).isEqualTo(4.0)
+        }
         client.decrementCounter(name)
         await untilAsserted {
             assertThat(statsd.metric(name)).isEqualTo(3.0)
@@ -84,6 +93,22 @@ internal abstract class BaseStatsDServerTest {
         assertThat(statsd.calls()).containsOnlyOnce(expectedMessage)
         statsd.verifyCall(expectedMessage)
         statsd.verifyNoMoreCalls(expectedMessage)
+    }
+
+    @Test
+    fun `Server should capture Set metric`() {
+        val name = "setMetric"
+        val values = listOf(42.0, 42.0, 43.2, 44.5)
+
+        values.forEach {
+            client.set(name, it)
+            await untilAsserted {
+                assertThat(statsd.metricContents(name)).contains(it)
+            }
+        }
+
+        assertThat(statsd.metricContents(name))
+            .containsExactlyElementsOf(values.toSet())
     }
 
     /**
