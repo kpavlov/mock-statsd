@@ -18,12 +18,22 @@ public class StatsDClient(
 ) {
     private val socket: DatagramSocket = DatagramSocket()
 
-    public fun incrementCounter(metric: String) {
-        send("$metric:1|c")
+    @JvmOverloads
+    public fun incrementCounter(metric: String, sampleRate: Double? = null) {
+        if (sampleRate != null) {
+            send("$metric:1|c|@$sampleRate")
+        } else {
+            send("$metric:1|c")
+        }
     }
 
-    public fun time(metric: String, value: Long) {
-        send("$metric:$value|ms")
+    @JvmOverloads
+    public fun time(metric: String, value: Long, sampleRate: Double? = null) {
+        if (sampleRate != null) {
+            send("$metric:$value|ms|@$sampleRate")
+        } else {
+            send("$metric:$value|ms")
+        }
     }
 
     public fun gauge(metric: String, value: Double) {
