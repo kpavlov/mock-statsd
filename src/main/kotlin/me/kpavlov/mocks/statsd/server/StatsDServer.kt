@@ -9,7 +9,7 @@ import java.util.concurrent.Executors
 public const val RANDOM_PORT: Int = 0
 public const val DEFAULT_PORT: Int = 8125
 
-private const val BUFFER_SIZE = 1024
+private const val BUFFER_SIZE = 8932
 
 /**
  * A StatsD server that listens for incoming UDP packets containing metrics and stores them for analysis.
@@ -53,13 +53,21 @@ public open class StatsDServer(port: Int = DEFAULT_PORT) {
                 val message = String(packet.data, 0, packet.length)
                 logger.debug("Received: {}", message)
                 onMessage(message)
-                val metricData = message.split(":")
-                val metricName = metricData[0]
-                val metricValue = metricData[1].split("|")[0].toDouble()
-                metrics.merge(metricName, metricValue, Double::plus)
-                logger.debug("Updated value: {} = {}", metricName, metrics[metricName])
+                handleMessage(message)
             }
         }
+    }
+
+    private fun handleMessage(message: String) {
+        message.split("\n").forEach(this::handleMetric)
+    }
+
+    private fun handleMetric(message: String) {
+        val metricData = message.split(":")
+        val metricName = metricData[0]
+        val metricValue = metricData[1].split("|")[0].toDouble()
+        metrics.merge(metricName, metricValue, Double::plus)
+        logger.debug("Updated value: {} = {}", metricName, metrics[metricName])
     }
 
     protected open fun onMessage(message: String) {

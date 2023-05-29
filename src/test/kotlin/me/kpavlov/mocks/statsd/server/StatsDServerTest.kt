@@ -10,13 +10,13 @@ internal class StatsDServerTest : BaseStatsDServerTest() {
 
     @BeforeAll
     fun beforeAll() {
-        mockStatsD = MockStatsDServer(RANDOM_PORT)
-        mockStatsD.start()
-        client = StatsDClient(port = mockStatsD.port())
+        statsd = MockStatsDServer(RANDOM_PORT)
+        statsd.start()
+        client = StatsDClient(port = statsd.port())
     }
 
     @AfterAll
     fun afterAll() {
-        mockStatsD.stop()
+        statsd.stop()
     }
 }

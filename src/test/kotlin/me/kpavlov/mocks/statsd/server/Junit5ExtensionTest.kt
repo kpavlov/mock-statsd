@@ -12,7 +12,7 @@ internal class Junit5ExtensionTest : BaseStatsDServerTest() {
 
     @BeforeAll
     fun beforeAll() {
-        mockStatsD = StatsDJUnit5Extension.statsDServer()
-        client = StatsDClient(port = mockStatsD.port())
+        statsd = StatsDJUnit5Extension.statsDServer()
+        client = StatsDClient(port = statsd.port())
     }
 }

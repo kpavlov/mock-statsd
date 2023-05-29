@@ -6,9 +6,12 @@ import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilAsserted
 import org.junit.jupiter.api.Test
 
+/**
+ * See also: https://github.com/statsd/statsd/blob/master/docs/metric_types.md
+ */
 @Suppress("UnnecessaryAbstractClass")
 internal abstract class BaseStatsDServerTest {
-    protected lateinit var mockStatsD: MockStatsDServer
+    protected lateinit var statsd: MockStatsDServer
     protected lateinit var client: StatsDClient
 
     @Test
@@ -17,12 +20,12 @@ internal abstract class BaseStatsDServerTest {
         val value = 31L
         client.time(name, value)
         await untilAsserted {
-            assertThat(mockStatsD.metric(name)).isEqualTo(value.toDouble())
+            assertThat(statsd.metric(name)).isEqualTo(value.toDouble())
         }
         val expectedMessage = "$name:$value|ms"
-        assertThat(mockStatsD.calls()).containsOnlyOnce(expectedMessage)
-        mockStatsD.verifyCall(expectedMessage)
-        mockStatsD.verifyNoMoreCalls(expectedMessage)
+        assertThat(statsd.calls()).containsOnlyOnce(expectedMessage)
+        statsd.verifyCall(expectedMessage)
+        statsd.verifyNoMoreCalls(expectedMessage)
     }
 
     @Test
@@ -32,14 +35,14 @@ internal abstract class BaseStatsDServerTest {
         client.incrementCounter(name)
         client.incrementCounter(name)
         await untilAsserted {
-            assertThat(mockStatsD.metric(name)).isEqualTo(3.0)
+            assertThat(statsd.metric(name)).isEqualTo(3.0)
         }
         val expectedMessage = "$name:1|c"
-        assertThat(mockStatsD.calls().count { it == expectedMessage }).isEqualTo(3)
-        mockStatsD.verifyCall(expectedMessage)
-        mockStatsD.verifyCall(expectedMessage)
-        mockStatsD.verifyCall(expectedMessage)
-        mockStatsD.verifyNoMoreCalls(expectedMessage)
+        assertThat(statsd.calls().count { it == expectedMessage }).isEqualTo(3)
+        statsd.verifyCall(expectedMessage)
+        statsd.verifyCall(expectedMessage)
+        statsd.verifyCall(expectedMessage)
+        statsd.verifyNoMoreCalls(expectedMessage)
     }
 
     @Test
@@ -48,12 +51,12 @@ internal abstract class BaseStatsDServerTest {
         client.incrementCounter(name)
         val expectedMessage = "$name:1|c"
         await untilAsserted {
-            assertThat(mockStatsD.calls()).contains(expectedMessage)
+            assertThat(statsd.calls()).contains(expectedMessage)
         }
         // when
-        mockStatsD.reset()
-        assertThat(mockStatsD.calls()).isEmpty()
-        mockStatsD.verifyNoMoreCalls(expectedMessage)
+        statsd.reset()
+        assertThat(statsd.calls()).isEmpty()
+        statsd.verifyNoMoreCalls(expectedMessage)
     }
 
     @Test
@@ -62,12 +65,47 @@ internal abstract class BaseStatsDServerTest {
         val value = 42.0
         client.gauge(name, value)
         await untilAsserted {
-            assertThat(mockStatsD.metric(name)).isEqualTo(value)
+            assertThat(statsd.metric(name)).isEqualTo(value)
         }
         val expectedMessage = "$name:$value|g"
-        assertThat(mockStatsD.calls()).containsOnlyOnce(expectedMessage)
-        mockStatsD.verifyCall(expectedMessage)
-        mockStatsD.verifyNoMoreCalls(expectedMessage)
+        assertThat(statsd.calls()).containsOnlyOnce(expectedMessage)
+        statsd.verifyCall(expectedMessage)
+        statsd.verifyNoMoreCalls(expectedMessage)
+    }
+
+    /**
+     * This test case ensures that gauge metrics in StatsD work correctly,
+     * including setting an initial value and adjusting it.
+     * It also verifies that the server processes the operations
+     * in the correct order and that there are no additional,
+     * unexpected calls to the server.
+     */
+    @Test
+    fun `Server should capture and adjust Gauge`() {
+        val name = "gaugor"
+
+        // Set initial value
+        var value = 333.0
+        client.gauge(name, value)
+        await untilAsserted {
+            assertThat(statsd.metric(name)).isEqualTo(value)
+        }
+
+        // Decrease the value
+        value -= 10
+        client.gauge(name, -10.0)
+        await untilAsserted {
+            assertThat(statsd.metric(name)).isEqualTo(value)
+        }
+        statsd.verifyCall("$name:-10.0|g")
+
+        // Increase the value
+        value += 4
+        client.gauge(name, 4.0)
+        await untilAsserted {
+            assertThat(statsd.metric(name)).isEqualTo(value)
+        }
+        statsd.verifyCall("$name:4.0|g")
     }
 
     @Test
@@ -76,11 +114,28 @@ internal abstract class BaseStatsDServerTest {
         val value = 42.0
         client.histogram(name, value)
         await untilAsserted {
-            assertThat(mockStatsD.metric(name)).isEqualTo(value)
+            assertThat(statsd.metric(name)).isEqualTo(value)
         }
         val expectedMessage = "$name:$value|h"
-        assertThat(mockStatsD.calls()).containsOnlyOnce(expectedMessage)
-        mockStatsD.verifyCall(expectedMessage)
-        mockStatsD.verifyNoMoreCalls(expectedMessage)
+        assertThat(statsd.calls()).containsOnlyOnce(expectedMessage)
+        statsd.verifyCall(expectedMessage)
+        statsd.verifyNoMoreCalls(expectedMessage)
+    }
+
+    @Test
+    fun `Server should handle multi-metric packets`() {
+        val gaugeName = "batchGauge"
+        val counterName = "batchCounter"
+
+        // Set initial value
+        val gaugeValue = 333.0
+        val counterValue = 42.0
+        client.send("$gaugeName:$gaugeValue|g\n$counterName:$counterValue|c")
+        await untilAsserted {
+            assertThat(statsd.metric(gaugeName)).isEqualTo(gaugeValue)
+        }
+        await untilAsserted {
+            assertThat(statsd.metric(counterName)).isEqualTo(counterValue)
+        }
     }
 }
