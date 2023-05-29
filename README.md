@@ -32,19 +32,7 @@ By simplifying the process of testing your application's metrics code and provid
 
 ## Getting Started
 
-1. Add dependency:
-
-    pom.xml
-    ```xml
-    <dependency>
-        <groupId>com.github.kpavlov.mocks.statsd</groupId>
-        <artifactId>mock-statsd</artifactId>
-        <version>${VERSION}</version>
-        <scope>test</scope>
-    </dependency>
-    ```
-
-   in `pom.xml`:
+1. Add dependency in `pom.xml`:
     ```xml
     <dependency>
         <groupId>com.github.kpavlov.mocks.statsd</groupId>
