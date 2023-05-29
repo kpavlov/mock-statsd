@@ -6,6 +6,7 @@
 [![GitHub license](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat)](https://www.apache.org/licenses/LICENSE-2.0)
 [![Kotlin](https://img.shields.io/badge/kotlin-1.8.21-blue.svg?logo=kotlin)](http://kotlinlang.org)
 
+**TL;DR** The Mock StatsD library simplifies the testing process for Kotlin/Java applications that send metrics to a StatsD server. It provides detailed verification capabilities for all types of StatsD metrics and automates port management for ease of use. It integrates smoothly with JUnit 5 for effortless unit testing and leverages Kotlin features for an idiomatic and intuitive experience. Ultimately, Mock StatsD promotes software quality and reliability by enabling thorough and efficient metrics testing.
 
 ## What is StatsD?
 
