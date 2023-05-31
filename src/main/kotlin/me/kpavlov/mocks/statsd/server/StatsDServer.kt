@@ -51,7 +51,9 @@ public open class StatsDServer(port: Int = DEFAULT_PORT) {
             while (shouldRun) {
                 socket.receive(packet)
                 val message = String(packet.data, 0, packet.length)
-                logger.debug("Received: {}", message)
+                if (logger.isDebugEnabled) {
+                    logger.debug("Received: {}", message)
+                }
                 @Suppress("TooGenericExceptionCaught")
                 try {
                     onMessage(message)
@@ -84,30 +86,42 @@ public open class StatsDServer(port: Int = DEFAULT_PORT) {
         var tags: Map<String, String> = emptyMap()
 
         for (i in 2 until valueParts.size) {
-            val prefix = valueParts[i].first()
-            when (prefix) {
+            val expression = valueParts[i]
+            when (expression.first()) {
                 '@' -> {
-                    sampleRate = valueParts[i].substring(1).toDouble()
+                    sampleRate = expression.substring(1).toDouble()
                 }
-
                 '#' -> {
-                    tags = mutableMapOf()
-                    valueParts[i].substring(1)
-                        .split(",")
-                        .forEach {
-                            it.split(':')
-                                .zipWithNext { k, v -> tags[k] = v }
-                        }
+                    tags = extractTags(expression)
                 }
             }
         }
 
         val metricId = MetricId(metricName, tags)
-        logger.trace("Tags: {}, ID={}", tags, metricId)
+        if (logger.isTraceEnabled) {
+            logger.trace("Tags: {}, ID={}", tags, metricId)
+        }
 
         val metric = metrics.computeIfAbsent(metricId) { createMetric(metricType) }
         metric.merge(metricValue, sampleRate)
-        logger.debug("Updated value: {} = {}", metricId, metrics[metricId])
+        if (logger.isDebugEnabled) {
+            logger.debug("Updated value: {} = {}", metricId, metrics[metricId])
+        }
+    }
+
+    private fun extractTags(expression: String): Map<String, String> {
+        val result = mutableMapOf<String, String>()
+        expression.substring(1)
+            .split(",")
+            .forEach {
+                val keysAndValues = it.split(':')
+                for (t in 0 until keysAndValues.size - 1) {
+                    val tagName = keysAndValues[t]
+                    val tagValue = keysAndValues[t + 1]
+                    result[tagName] = tagValue
+                }
+            }
+        return result
     }
 
     protected open fun onMessage(message: String) {
