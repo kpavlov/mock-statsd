@@ -43,7 +43,6 @@ internal class StatsDServerTest : BaseStatsDServerTest() {
         }
     }
 
-
     @Test
     fun `Should handle SpringBoot metrics batch`() {
         val packet = "logback.events:1|c|#statistic:count,level:info\n" +
