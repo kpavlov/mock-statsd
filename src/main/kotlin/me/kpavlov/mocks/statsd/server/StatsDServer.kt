@@ -3,7 +3,6 @@ package me.kpavlov.mocks.statsd.server
 import org.slf4j.LoggerFactory
 import java.net.DatagramPacket
 import java.net.DatagramSocket
-import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 
 public const val RANDOM_PORT: Int = 0
@@ -15,10 +14,11 @@ private const val BUFFER_SIZE = 8932
  * A StatsD server that listens for incoming UDP packets containing metrics and stores them for analysis.
  * The server runs on a specified port or the default port (8125) if not provided.
  */
+@Suppress("TooManyFunctions")
 public open class StatsDServer(port: Int = DEFAULT_PORT) {
     private val logger = LoggerFactory.getLogger(javaClass)
     private val socket = DatagramSocket(port)
-    private val metrics = ConcurrentHashMap<MetricId, Metric>()
+    private val repository = MetricRepository()
     private val executorService = Executors.newSingleThreadExecutor()
 
     private var shouldRun = false
@@ -33,9 +33,7 @@ public open class StatsDServer(port: Int = DEFAULT_PORT) {
     /**
      * Reset collected metrics
      */
-    public open fun reset() {
-        metrics.clear()
-    }
+    public open fun reset(): Unit = repository.reset()
 
     /**
      * Starts the StatsD server, listening for incoming UDP packets and processing them.
@@ -91,22 +89,14 @@ public open class StatsDServer(port: Int = DEFAULT_PORT) {
                 '@' -> {
                     sampleRate = expression.substring(1).toDouble()
                 }
+
                 '#' -> {
                     tags = extractTags(expression)
                 }
             }
         }
 
-        val metricId = MetricId(metricName, tags)
-        if (logger.isTraceEnabled) {
-            logger.trace("Tags: {}, ID={}", tags, metricId)
-        }
-
-        val metric = metrics.computeIfAbsent(metricId) { createMetric(metricType) }
-        metric.merge(metricValue, sampleRate)
-        if (logger.isDebugEnabled) {
-            logger.debug("Updated value: {} = {}", metricId, metrics[metricId])
-        }
+        repository.merge(metricType, metricName, tags, metricValue, sampleRate)
     }
 
     private fun extractTags(expression: String): Map<String, String> {
@@ -137,8 +127,7 @@ public open class StatsDServer(port: Int = DEFAULT_PORT) {
     }
 
     private fun findMetric(metricName: String, tags: Map<String, String>? = null): Metric? {
-        return metrics.entries
-            .firstOrNull { it.key.matches(metricName, tags) }?.value
+        return repository.findMetric(metricName, tags)
     }
 
     /**
@@ -166,14 +155,7 @@ public open class StatsDServer(port: Int = DEFAULT_PORT) {
     public fun metricContents(
         metricName: String,
         tags: Map<String, String>? = null
-    ): DoubleArray? {
-        val metric = findMetric(metricName, tags)
-        return if (metric is Metric.SetMetric) {
-            metric.values()
-        } else {
-            null
-        }
-    }
+    ): DoubleArray? = repository.metricContents(metricName, tags)
 }
 
 /**
