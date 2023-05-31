@@ -64,7 +64,11 @@ public open class StatsDServer(port: Int = DEFAULT_PORT) {
     }
 
     private fun handleMessage(message: String) {
-        message.split("\n").forEach(this::handleMetric)
+        message
+            .split("\n")
+            .map(String::trim)
+            .filter { it.isNotEmpty() }
+            .forEach(this::handleMetric)
     }
 
     /**

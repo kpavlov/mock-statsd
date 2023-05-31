@@ -24,6 +24,26 @@ internal class StatsDServerTest : BaseStatsDServerTest() {
     }
 
     @Test
+    fun `Should handle batch with empty lines`() {
+        val packet = " \n \nlogback.events:1|c|#statistic:count,level:info \n \n"
+
+        client.send(packet)
+
+        await untilAsserted {
+            assertThat(
+                statsd.metric(
+                    metricName = "logback.events",
+                    tags = mapOf(
+                        "statistic" to "count",
+                        "level" to "info"
+                    )
+                )
+            )
+                .isEqualTo(1.0)
+        }
+    }
+
+    @Test
     fun `Should handle SpringBoot metrics batch`() {
         val packet = "logback.events:1|c|#statistic:count,level:info\n" +
             "logback.events:1|c|#statistic:count,level:info\n" +
