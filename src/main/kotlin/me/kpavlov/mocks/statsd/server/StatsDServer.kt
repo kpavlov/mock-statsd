@@ -3,7 +3,6 @@ package me.kpavlov.mocks.statsd.server
 import org.slf4j.LoggerFactory
 import java.net.DatagramPacket
 import java.net.DatagramSocket
-import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 
 public const val RANDOM_PORT: Int = 0
@@ -15,10 +14,11 @@ private const val BUFFER_SIZE = 8932
  * A StatsD server that listens for incoming UDP packets containing metrics and stores them for analysis.
  * The server runs on a specified port or the default port (8125) if not provided.
  */
+@Suppress("TooManyFunctions")
 public open class StatsDServer(port: Int = DEFAULT_PORT) {
     private val logger = LoggerFactory.getLogger(javaClass)
     private val socket = DatagramSocket(port)
-    private val metrics = ConcurrentHashMap<MetricId, Metric>()
+    private val repository = MetricRepository()
     private val executorService = Executors.newSingleThreadExecutor()
 
     private var shouldRun = false
@@ -33,9 +33,7 @@ public open class StatsDServer(port: Int = DEFAULT_PORT) {
     /**
      * Reset collected metrics
      */
-    public open fun reset() {
-        metrics.clear()
-    }
+    public open fun reset(): Unit = repository.reset()
 
     /**
      * Starts the StatsD server, listening for incoming UDP packets and processing them.
@@ -51,7 +49,9 @@ public open class StatsDServer(port: Int = DEFAULT_PORT) {
             while (shouldRun) {
                 socket.receive(packet)
                 val message = String(packet.data, 0, packet.length)
-                logger.debug("Received: {}", message)
+                if (logger.isDebugEnabled) {
+                    logger.debug("Received: {}", message)
+                }
                 @Suppress("TooGenericExceptionCaught")
                 try {
                     onMessage(message)
@@ -84,30 +84,34 @@ public open class StatsDServer(port: Int = DEFAULT_PORT) {
         var tags: Map<String, String> = emptyMap()
 
         for (i in 2 until valueParts.size) {
-            val prefix = valueParts[i].first()
-            when (prefix) {
+            val expression = valueParts[i]
+            when (expression.first()) {
                 '@' -> {
-                    sampleRate = valueParts[i].substring(1).toDouble()
+                    sampleRate = expression.substring(1).toDouble()
                 }
 
                 '#' -> {
-                    tags = mutableMapOf()
-                    valueParts[i].substring(1)
-                        .split(",")
-                        .forEach {
-                            it.split(':')
-                                .zipWithNext { k, v -> tags[k] = v }
-                        }
+                    tags = extractTags(expression)
                 }
             }
         }
 
-        val metricId = MetricId(metricName, tags)
-        logger.trace("Tags: {}, ID={}", tags, metricId)
+        repository.merge(metricType, metricName, tags, metricValue, sampleRate)
+    }
 
-        val metric = metrics.computeIfAbsent(metricId) { createMetric(metricType) }
-        metric.merge(metricValue, sampleRate)
-        logger.debug("Updated value: {} = {}", metricId, metrics[metricId])
+    private fun extractTags(expression: String): Map<String, String> {
+        val result = mutableMapOf<String, String>()
+        expression.substring(1)
+            .split(",")
+            .forEach {
+                val keysAndValues = it.split(':')
+                for (t in 0 until keysAndValues.size - 1) {
+                    val tagName = keysAndValues[t]
+                    val tagValue = keysAndValues[t + 1]
+                    result[tagName] = tagValue
+                }
+            }
+        return result
     }
 
     protected open fun onMessage(message: String) {
@@ -123,8 +127,7 @@ public open class StatsDServer(port: Int = DEFAULT_PORT) {
     }
 
     private fun findMetric(metricName: String, tags: Map<String, String>? = null): Metric? {
-        return metrics.entries
-            .firstOrNull { it.key.matches(metricName, tags) }?.value
+        return repository.findMetric(metricName, tags)
     }
 
     /**
@@ -152,14 +155,7 @@ public open class StatsDServer(port: Int = DEFAULT_PORT) {
     public fun metricContents(
         metricName: String,
         tags: Map<String, String>? = null
-    ): DoubleArray? {
-        val metric = findMetric(metricName, tags)
-        return if (metric is Metric.SetMetric) {
-            metric.values()
-        } else {
-            null
-        }
-    }
+    ): DoubleArray? = repository.metricContents(metricName, tags)
 }
 
 /**
