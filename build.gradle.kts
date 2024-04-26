@@ -2,7 +2,7 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
     `java-library`
-    kotlin("jvm") version "1.8.21"
+    kotlin("jvm") version "1.9.23"
     id("org.jetbrains.dokka") version "1.8.10"
     id("org.jlleitschuh.gradle.ktlint") version "11.3.2"
     signing
