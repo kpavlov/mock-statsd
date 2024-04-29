@@ -70,6 +70,7 @@ val javadocJar: TaskProvider<Jar> by tasks.registering(Jar::class) {
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
     kotlinOptions {
+        jvmTarget = "17"
         freeCompilerArgs = listOf(
             "-Xjvm-default=all",
             "-Xjsr305=strict",
