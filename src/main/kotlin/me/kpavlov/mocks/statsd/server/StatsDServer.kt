@@ -3,10 +3,12 @@ package me.kpavlov.mocks.statsd.server
 import org.slf4j.LoggerFactory
 import java.net.DatagramPacket
 import java.net.DatagramSocket
+import java.net.InetAddress
 import java.util.concurrent.Executors
 
 public const val RANDOM_PORT: Int = 0
 public const val DEFAULT_PORT: Int = 8125
+public const val DEFAULT_HOST: String = "127.0.0.1"
 
 private const val BUFFER_SIZE = 8932
 
@@ -15,9 +17,12 @@ private const val BUFFER_SIZE = 8932
  * The server runs on a specified port or the default port (8125) if not provided.
  */
 @Suppress("TooManyFunctions")
-public open class StatsDServer(port: Int = DEFAULT_PORT) {
+public open class StatsDServer(
+    host: String = DEFAULT_HOST,
+    port: Int = DEFAULT_PORT
+) {
     private val logger = LoggerFactory.getLogger(javaClass)
-    private val socket = DatagramSocket(port)
+    private val socket = DatagramSocket(port, InetAddress.getByName(host))
     private val repository = MetricRepository()
     private val executorService = Executors.newSingleThreadExecutor()
 
@@ -29,6 +34,7 @@ public open class StatsDServer(port: Int = DEFAULT_PORT) {
      * @return the port number
      */
     public fun port(): Int = socket.localPort
+    public fun host(): String = socket.localAddress.hostAddress
 
     /**
      * Reset collected metrics
@@ -45,7 +51,7 @@ public open class StatsDServer(port: Int = DEFAULT_PORT) {
 
         executorService.submit {
             shouldRun = true
-            logger.info("Starting StatsD server on port ${port()}")
+            logger.info("Starting StatsD server on ${host()}:${port()}")
             while (shouldRun) {
                 socket.receive(packet)
                 val message = String(packet.data, 0, packet.length)
@@ -126,7 +132,7 @@ public open class StatsDServer(port: Int = DEFAULT_PORT) {
      * Stops the StatsD server, ceasing the packet processing and shutting down the server.
      */
     public fun stop() {
-        logger.info("Stopping StatsD server on port ${port()}")
+        logger.info("Stopping StatsD server on ${host()}:${port()}")
         shouldRun = false
     }
 

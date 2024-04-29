@@ -13,9 +13,9 @@ import org.junit.jupiter.api.TestInstance
 internal class StatsDServerTest : BaseStatsDServerTest() {
     @BeforeAll
     fun beforeAll() {
-        statsd = MockStatsDServer(RANDOM_PORT)
+        statsd = MockStatsDServer(port = RANDOM_PORT)
         statsd.start()
-        client = StatsDClient(port = statsd.port())
+        client = StatsDClient(host = statsd.host(), port = statsd.port())
     }
 
     @AfterAll

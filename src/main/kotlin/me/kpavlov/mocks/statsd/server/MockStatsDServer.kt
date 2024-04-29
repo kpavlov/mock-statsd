@@ -6,7 +6,10 @@ import java.util.concurrent.ConcurrentLinkedQueue
  * A StatsD server that listens for incoming UDP packets containing metrics and stores them for analysis.
  * The server runs on a specified port or the default port (8125) if not provided.
  */
-public class MockStatsDServer(port: Int = DEFAULT_PORT) : StatsDServer(port = port) {
+public class MockStatsDServer(
+    host: String = DEFAULT_HOST,
+    port: Int = DEFAULT_PORT
+) : StatsDServer(host = host, port = port) {
     private val calls = ConcurrentLinkedQueue<String>()
 
     protected override fun onMessage(message: String) {
