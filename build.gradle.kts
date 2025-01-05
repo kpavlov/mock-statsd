@@ -36,7 +36,7 @@ repositories {
 
 dependencies {
     val awaitilityVersion = "4.2.2"
-    val assertjVersion = "3.26.3"
+    val assertjVersion = "3.27.2"
     val slf4jVersion = "2.0.16"
     val junitVersion = "5.11.3"
 
