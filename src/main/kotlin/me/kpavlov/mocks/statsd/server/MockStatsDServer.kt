@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 public class MockStatsDServer(
     host: String = DEFAULT_HOST,
     port: Int = DEFAULT_PORT
-) : StatsDServer(host = host, port = port) {
+) : StatsDServer(initialHost = host, initialPort = port) {
     private val calls = ConcurrentLinkedQueue<String>()
 
     protected override fun onMessage(message: String) {
