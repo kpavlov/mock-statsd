@@ -4,6 +4,7 @@ import org.slf4j.LoggerFactory
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 
 public const val RANDOM_PORT: Int = 0
@@ -18,23 +19,24 @@ private const val BUFFER_SIZE = 8932
  */
 @Suppress("TooManyFunctions")
 public open class StatsDServer(
-    host: String = DEFAULT_HOST,
-    port: Int = DEFAULT_PORT
-) {
+    initialHost: String = DEFAULT_HOST,
+    private val initialPort: Int = DEFAULT_PORT
+) : AutoCloseable {
     private val logger = LoggerFactory.getLogger(javaClass)
-    private val socket = DatagramSocket(port, InetAddress.getByName(host))
     private val repository = MetricRepository()
-    private val executorService = Executors.newSingleThreadExecutor()
+    private val executorService = Executors.newCachedThreadPool()
 
     private var shouldRun = false
 
+    private val host = InetAddress.getByName(initialHost)
+    private var serverSocket: DatagramSocket? = null
     /**
      * Retrieves the port number on which the server is running.
      *
      * @return the port number
      */
-    public fun port(): Int = socket.localPort
-    public fun host(): String = socket.localAddress.hostAddress
+    public fun port(): Int = serverSocket?.localPort ?: throw  IllegalStateException("Server is not started")
+    public fun host(): String = serverSocket?.localAddress?.hostAddress ?: throw  IllegalStateException("Server is not started")
 
     /**
      * Reset collected metrics
@@ -49,24 +51,31 @@ public open class StatsDServer(
         val buffer = ByteArray(BUFFER_SIZE)
         val packet = DatagramPacket(buffer, buffer.size)
 
+        val latch = CountDownLatch(1)
+
         executorService.submit {
             shouldRun = true
+            serverSocket = DatagramSocket(initialPort, host)
             logger.info("Starting StatsD server on ${host()}:${port()}")
-            while (shouldRun) {
-                socket.receive(packet)
-                val message = String(packet.data, 0, packet.length)
-                if (logger.isDebugEnabled) {
-                    logger.debug("Received: {}", message)
-                }
-                @Suppress("TooGenericExceptionCaught")
-                try {
-                    onMessage(message)
-                    handleMessage(message)
-                } catch (e: Exception) {
-                    logger.error("Can't handle message: $message", e)
+            serverSocket.use { socket ->
+                latch.countDown()
+                while (shouldRun) {
+                    socket?.receive(packet)
+                    val message = String(packet.data, 0, packet.length)
+                    if (logger.isDebugEnabled) {
+                        logger.debug("Received: {}", message)
+                    }
+                    @Suppress("TooGenericExceptionCaught")
+                    try {
+                        onMessage(message)
+                        handleMessage(message)
+                    } catch (e: Exception) {
+                        logger.error("Can't handle message: $message", e)
+                    }
                 }
             }
         }
+        latch.await()
     }
 
     private fun handleMessage(message: String) {
@@ -134,6 +143,12 @@ public open class StatsDServer(
     public fun stop() {
         logger.info("Stopping StatsD server on ${host()}:${port()}")
         shouldRun = false
+        serverSocket?.close()
+    }
+
+    override fun close() {
+        stop()
+        executorService.shutdownNow()
     }
 
     private fun findMetric(metricName: String, tags: Map<String, String>? = null): Metric? {
