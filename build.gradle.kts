@@ -38,7 +38,7 @@ dependencies {
     val awaitilityVersion = "4.3.0"
     val assertjVersion = "3.27.3"
     val slf4jVersion = "2.0.17"
-    val junitVersion = "5.13.0"
+    val junitVersion = "5.13.1"
 
     api("org.slf4j:slf4j-api:$slf4jVersion")
     api("org.junit.jupiter:junit-jupiter-api:$junitVersion")
