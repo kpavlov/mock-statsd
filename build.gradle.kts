@@ -2,7 +2,7 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
     `java-library`
-    kotlin("jvm") version "2.1.20"
+    kotlin("jvm") version "2.1.21"
     id("org.jetbrains.dokka") version "2.0.0"
     id("org.jlleitschuh.gradle.ktlint") version "11.6.1"
     signing
@@ -43,6 +43,7 @@ dependencies {
     api("org.slf4j:slf4j-api:$slf4jVersion")
     api("org.junit.jupiter:junit-jupiter-api:$junitVersion")
     runtimeOnly("org.slf4j:slf4j-simple:$slf4jVersion")
+    testImplementation("io.kotest:kotest-assertions-core:6.0.0.M4")
     testImplementation("org.assertj:assertj-core:$assertjVersion")
     testImplementation("org.awaitility:awaitility-kotlin:$awaitilityVersion")
     testImplementation(kotlin("test-junit5"))

@@ -5,6 +5,7 @@ import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
 import java.util.concurrent.Executors
+import java.util.concurrent.Future
 
 public const val RANDOM_PORT: Int = 0
 public const val DEFAULT_PORT: Int = 8125
@@ -20,12 +21,12 @@ private const val BUFFER_SIZE = 8932
 public open class StatsDServer(
     host: String = DEFAULT_HOST,
     port: Int = DEFAULT_PORT
-) {
+) : AutoCloseable {
     private val logger = LoggerFactory.getLogger(javaClass)
     private val socket = DatagramSocket(port, InetAddress.getByName(host))
     private val repository = MetricRepository()
     private val executorService = Executors.newSingleThreadExecutor()
-
+    private var job: Future<*>? = null
     private var shouldRun = false
 
     /**
@@ -33,8 +34,15 @@ public open class StatsDServer(
      *
      * @return the port number
      */
-    public fun port(): Int = socket.localPort
-    public fun host(): String = socket.localAddress.hostAddress
+    public fun port(): Int =
+        requireNotNull(socket.localPort) {
+            "Server is not running yet. Call start() to start the server first."
+        }
+
+    public fun host(): String =
+        requireNotNull(socket.localAddress.hostAddress) {
+            "Server is not running yet. Call start() to start the server first."
+        }
 
     /**
      * Reset collected metrics
@@ -43,13 +51,16 @@ public open class StatsDServer(
 
     /**
      * Starts the StatsD server, listening for incoming UDP packets and processing them.
-     * This method runs on a separate thread.
+     * This method returns immediately, and the server is started on a separate thread.
      */
     public fun start() {
         val buffer = ByteArray(BUFFER_SIZE)
         val packet = DatagramPacket(buffer, buffer.size)
 
-        executorService.submit {
+        if (job != null) {
+            logger.info("StatsD server is already running on ${host()}:${port()}")
+        }
+        job = executorService.submit {
             shouldRun = true
             logger.info("Starting StatsD server on ${host()}:${port()}")
             while (shouldRun) {
@@ -132,8 +143,15 @@ public open class StatsDServer(
      * Stops the StatsD server, ceasing the packet processing and shutting down the server.
      */
     public fun stop() {
-        logger.info("Stopping StatsD server on ${host()}:${port()}")
+        val host = host()
+        val port = port()
+        logger.info("Stopping StatsD server on $host:$port")
         shouldRun = false
+        job?.cancel(true)
+        job = null
+        executorService.shutdownNow()
+        socket.close()
+        logger.info("StatsD server stopped on $host:$port")
     }
 
     private fun findMetric(metricName: String, tags: Map<String, String>? = null): Metric? {
@@ -166,6 +184,10 @@ public open class StatsDServer(
         metricName: String,
         tags: Map<String, String>? = null
     ): DoubleArray? = repository.metricContents(metricName, tags)
+
+    override fun close() {
+        stop()
+    }
 }
 
 /**
@@ -175,7 +197,7 @@ public open class StatsDServer(
  * @param args the command-line arguments (unused)
  */
 @Suppress("UNUSED_PARAMETER")
-public fun main(vararg args: String) {
+public fun main() {
     val server = StatsDServer()
     server.start()
 }
