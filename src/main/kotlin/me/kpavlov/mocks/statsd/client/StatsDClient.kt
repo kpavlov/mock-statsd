@@ -13,7 +13,7 @@ import java.net.InetAddress
  * @link https://sysdig.com/blog/monitoring-statsd-metrics/
  */
 public class StatsDClient(
-    private val host: String = "localhost",
+    private val host: String = "0.0.0.0",
     private val port: Int = 8125
 ) {
     private val socket: DatagramSocket = DatagramSocket()
