@@ -43,7 +43,7 @@ dependencies {
     api("org.slf4j:slf4j-api:$slf4jVersion")
     api("org.junit.jupiter:junit-jupiter-api:$junitVersion")
     runtimeOnly("org.slf4j:slf4j-simple:$slf4jVersion")
-    testImplementation("io.kotest:kotest-assertions-core:6.0.0.M5")
+    testImplementation("io.kotest:kotest-assertions-core:6.0.0.M6")
     testImplementation("org.assertj:assertj-core:$assertjVersion")
     testImplementation("org.awaitility:awaitility-kotlin:$awaitilityVersion")
     testImplementation(kotlin("test-junit5"))
