@@ -4,7 +4,7 @@ plugins {
     `java-library`
     kotlin("jvm") version "2.1.21"
     id("org.jetbrains.dokka") version "2.0.0"
-    id("org.jlleitschuh.gradle.ktlint") version "11.6.1"
+    id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
     signing
     `maven-publish`
 
